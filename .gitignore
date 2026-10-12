@@ -1,0 +1,19 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# Confidential operational data and trained artifacts
+backend/training_data_full.xlsx
+backend/smartcafe_models.joblib
+backend/vendor_submissions.sqlite3
+backend/vendor_submissions.sqlite3-*
+backend/data/
+attendance*.csv
+vendor*.csv
+
+# Python and Streamlit runtime files
+__pycache__/
+*.py[cod]
+.streamlit/config.toml
