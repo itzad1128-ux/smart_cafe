@@ -383,11 +383,19 @@ def live_dashboard(target_date: date, holiday_choice: str) -> None:
 def render_app() -> None:
     st.markdown("""
     <style>
-        .stApp { background: #f4f6f2; }
-        [data-testid="stHeader"] { background: rgba(244, 246, 242, 0.92); }
-        .block-container { max-width: 1180px; padding-top: 2rem; padding-bottom: 3rem; }
-        h1, h2, h3 { color: #173b32; }
-        [data-testid="stMetric"] { background: #fff; border: 1px solid #dce5dc; padding: 1rem; border-radius: 8px; }
+        .stApp { background: #f3f6f2; color: #24352d; }
+        [data-testid="stHeader"] { background: rgba(243, 246, 242, 0.96); }
+        [data-testid="stSidebar"] { background: #e5ece6; }
+        [data-testid="stSidebar"] * { color: #24352d; }
+        .block-container { max-width: 1180px; padding-top: 2rem; padding-bottom: 3rem; color: #24352d; }
+        h1, h2, h3 { color: #173b32 !important; }
+        p, label, [data-testid="stCaptionContainer"] { color: #43584d; }
+        [data-testid="stMetric"] { background: #fff; border: 1px solid #d4dfd6; padding: 1rem; border-radius: 8px; }
+        [data-testid="stMetricLabel"], [data-testid="stMetricValue"] { color: #24352d !important; }
+        [data-testid="stAlert"] { color: #263a31; border-radius: 8px; }
+        [data-testid="stAlert"] p { color: #263a31 !important; }
+        [data-testid="stBaseButton-primary"] { background: #26734f; border-color: #26734f; }
+        [data-testid="stBaseButton-primary"] p { color: #fff !important; }
     </style>
     """, unsafe_allow_html=True)
     with st.sidebar:
