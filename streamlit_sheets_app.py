@@ -25,8 +25,16 @@ FEATURE_COLUMNS = [
     "is_holiday", "month", "avg_temp_c", "wfo_headcount",
     *(f"weekday_num_{weekday}" for weekday in range(5)),
 ]
-LOGO_PATH = Path(__file__).resolve().parent / "assets" / "smartcafe_mark.svg"
-LOGO_DATA_URI = "data:image/svg+xml;base64," + base64.b64encode(LOGO_PATH.read_bytes()).decode("ascii")
+APP_DIR = Path(__file__).resolve().parent
+LOGO_PATH = next((path for path in (
+    APP_DIR / "assets" / "smartcafe_mark.svg",
+    APP_DIR / "smartcafe_mark.svg",
+) if path.is_file()), APP_DIR / "smartcafe_mark.svg")
+LOGO_DATA_URI = (
+    "data:image/svg+xml;base64," + base64.b64encode(LOGO_PATH.read_bytes()).decode("ascii")
+    if LOGO_PATH.is_file()
+    else ""
+)
 
 
 def setting(name: str, default: str = "") -> str:
@@ -385,6 +393,10 @@ def live_dashboard(target_date: date, holiday_choice: str) -> None:
 
 
 def render_app() -> None:
+    watermark_background = (
+        f"background: url('{LOGO_DATA_URI}') center / contain no-repeat;"
+        if LOGO_DATA_URI else "background: none;"
+    )
     st.markdown(f"""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
@@ -436,7 +448,7 @@ def render_app() -> None:
         [data-testid="stAppViewContainer"]::before {{
             content: ""; position: fixed; pointer-events: none; z-index: 0;
             width: min(34vw, 410px); height: min(25vw, 294px); left: 50%; top: 31vh;
-            background: url('{LOGO_DATA_URI}') center / contain no-repeat;
+            {watermark_background}
             opacity: .045; transform-origin: center; animation: cafe-drift 34s ease-in-out infinite alternate;
         }}
         [data-testid="stAppViewContainer"] > .main {{ position: relative; z-index: 1; }}
@@ -464,8 +476,9 @@ def render_app() -> None:
         if form_url:
             st.link_button("Faculty daily form", form_url, use_container_width=True)
 
+    logo_markup = f'<img src="{LOGO_DATA_URI}" alt="SmartCafe logo">' if LOGO_DATA_URI else ""
     st.markdown(
-        f'<div class="cafe-brand"><img src="{LOGO_DATA_URI}" alt="SmartCafe logo">'
+        f'<div class="cafe-brand">{logo_markup}'
         '<div><div class="cafe-brand-title">SmartCafe AI</div>'
         '<div class="cafe-brand-subtitle">Weekday meal planning · live faculty Form and attendance data</div></div></div>',
         unsafe_allow_html=True,
