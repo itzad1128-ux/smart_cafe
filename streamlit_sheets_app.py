@@ -1,7 +1,9 @@
 from datetime import date, datetime, timedelta, timezone
+import base64
 import hashlib
 import hmac
 import os
+from pathlib import Path
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 import json
@@ -23,6 +25,8 @@ FEATURE_COLUMNS = [
     "is_holiday", "month", "avg_temp_c", "wfo_headcount",
     *(f"weekday_num_{weekday}" for weekday in range(5)),
 ]
+LOGO_PATH = Path(__file__).resolve().parent / "assets" / "smartcafe_mark.svg"
+LOGO_DATA_URI = "data:image/svg+xml;base64," + base64.b64encode(LOGO_PATH.read_bytes()).decode("ascii")
 
 
 def setting(name: str, default: str = "") -> str:
@@ -367,7 +371,7 @@ def live_dashboard(target_date: date, holiday_choice: str) -> None:
         chart = chart.set_index("service_date")
         chart_columns = [column for column in ("wfo_headcount", "meals_served") if column in chart]
         if chart_columns:
-            st.line_chart(chart[chart_columns], height=280)
+            st.line_chart(chart[chart_columns], color=["#F58220", "#E51F2D"], height=280)
     with right:
         bundle = st.session_state["model_bundle"]
         st.subheader("Live model details")
@@ -381,21 +385,65 @@ def live_dashboard(target_date: date, holiday_choice: str) -> None:
 
 
 def render_app() -> None:
-    st.markdown("""
+    st.markdown(f"""
     <style>
-        .stApp { background: #f3f6f2; color: #24352d; }
-        [data-testid="stHeader"] { background: rgba(243, 246, 242, 0.96); }
-        [data-testid="stSidebar"] { background: #e5ece6; }
-        [data-testid="stSidebar"] * { color: #24352d; }
-        .block-container { max-width: 1180px; padding-top: 2rem; padding-bottom: 3rem; color: #24352d; }
-        h1, h2, h3 { color: #173b32 !important; }
-        p, label, [data-testid="stCaptionContainer"] { color: #43584d; }
-        [data-testid="stMetric"] { background: #fff; border: 1px solid #d4dfd6; padding: 1rem; border-radius: 8px; }
-        [data-testid="stMetricLabel"], [data-testid="stMetricValue"] { color: #24352d !important; }
-        [data-testid="stAlert"] { color: #263a31; border-radius: 8px; }
-        [data-testid="stAlert"] p { color: #263a31 !important; }
-        [data-testid="stBaseButton-primary"] { background: #26734f; border-color: #26734f; }
-        [data-testid="stBaseButton-primary"] p { color: #fff !important; }
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+        :root {{
+            --cafe-bg: #111216;
+            --cafe-sidebar: #191a20;
+            --cafe-panel: #202127;
+            --cafe-border: #373941;
+            --cafe-text: #F4F1EC;
+            --cafe-muted: #B9BBC2;
+            --cafe-red: #E51F2D;
+            --cafe-orange: #F58220;
+        }}
+        .stApp {{ background: var(--cafe-bg); color: var(--cafe-text); font-family: 'Manrope', 'Aptos', 'Segoe UI', sans-serif; }}
+        [data-testid="stAppViewContainer"] {{ background: transparent; }}
+        [data-testid="stHeader"] {{ background: rgba(17, 18, 22, 0.94); }}
+        [data-testid="stSidebar"] {{ background: var(--cafe-sidebar); border-right: 1px solid var(--cafe-border); }}
+        [data-testid="stSidebar"] p,
+        [data-testid="stSidebar"] label,
+        [data-testid="stSidebar"] h1,
+        [data-testid="stSidebar"] h2,
+        [data-testid="stSidebar"] h3 {{ color: var(--cafe-text) !important; }}
+        .block-container {{ max-width: 1220px; padding-top: 1.4rem; padding-bottom: 3rem; color: var(--cafe-text); font-family: 'Manrope', 'Aptos', 'Segoe UI', sans-serif; }}
+        h1, h2, h3 {{ color: var(--cafe-text) !important; font-family: 'Manrope', 'Aptos', 'Segoe UI', sans-serif !important; font-weight: 700 !important; }}
+        p, label {{ color: var(--cafe-text); }}
+        [data-testid="stCaptionContainer"] p {{ color: var(--cafe-muted) !important; }}
+        [data-testid="stMetric"] {{ background: var(--cafe-panel); border: 1px solid var(--cafe-border); padding: 1rem; border-radius: 10px; animation: rise-in .45s ease both; }}
+        [data-testid="stMetricLabel"], [data-testid="stMetricLabel"] p {{ color: var(--cafe-muted) !important; }}
+        [data-testid="stMetricValue"], [data-testid="stMetricValue"] div {{ color: var(--cafe-text) !important; }}
+        [data-testid="stAlert"] {{ color: var(--cafe-text); background: #24252b !important; border: 1px solid #42444c; border-left: 4px solid var(--cafe-orange); border-radius: 8px; }}
+        [data-testid="stAlert"] p {{ color: var(--cafe-text) !important; }}
+        [data-testid="stBaseButton-secondary"] {{ background: #2a2c33; border: 1px solid #72747d; color: var(--cafe-text) !important; transition: background .18s ease, border-color .18s ease, transform .18s ease; }}
+        [data-testid="stBaseButton-secondary"] p {{ color: var(--cafe-text) !important; }}
+        [data-testid="stBaseButton-secondary"]:hover {{ background: #3a3c44; border-color: var(--cafe-orange); transform: translateY(-1px); }}
+        [data-testid="stBaseButton-primary"] {{ background: var(--cafe-red); border: 1px solid var(--cafe-red); color: #fff !important; transition: background .18s ease, transform .18s ease; }}
+        [data-testid="stBaseButton-primary"] p {{ color: #fff !important; }}
+        [data-testid="stBaseButton-primary"]:hover {{ background: #c91c28; transform: translateY(-1px); }}
+        [data-testid="stLinkButton"] a {{ background: var(--cafe-orange) !important; border: 1px solid var(--cafe-orange) !important; color: #19130e !important; }}
+        [data-testid="stLinkButton"] a p {{ color: #19130e !important; font-weight: 700; }}
+        [data-testid="stDateInput"] input,
+        [data-testid="stSelectbox"] [data-baseweb="select"] > div {{ background: #25262d; color: var(--cafe-text); border-color: #747680; }}
+        [data-testid="stDateInput"] input {{ color: var(--cafe-text) !important; }}
+        [data-testid="stSelectbox"] [data-baseweb="select"] * {{ color: var(--cafe-text) !important; }}
+        [data-testid="stSelectbox"] svg {{ fill: var(--cafe-text); }}
+        .cafe-brand {{ display: flex; flex-direction: column; align-items: center; gap: 7px; margin: 0 auto 1.25rem; text-align: center; position: relative; z-index: 1; }}
+        .cafe-brand img {{ width: 42px; height: 30px; object-fit: contain; }}
+        .cafe-brand-title {{ color: #F4F1EC !important; font-size: 1.75rem; line-height: 1.15; font-weight: 800; }}
+        .cafe-brand-subtitle {{ color: #B9BBC2 !important; font-size: .88rem; margin-top: 4px; }}
+        [data-testid="stAppViewContainer"]::before {{
+            content: ""; position: fixed; pointer-events: none; z-index: 0;
+            width: min(34vw, 410px); height: min(25vw, 294px); left: 50%; top: 31vh;
+            background: url('{LOGO_DATA_URI}') center / contain no-repeat;
+            opacity: .045; transform-origin: center; animation: cafe-drift 34s ease-in-out infinite alternate;
+        }}
+        [data-testid="stAppViewContainer"] > .main {{ position: relative; z-index: 1; }}
+        @keyframes cafe-drift {{ from {{ transform: translateX(-50%) rotate(-4deg) scale(.97); }} to {{ transform: translateX(-50%) rotate(3deg) scale(1.02); }} }}
+        @keyframes rise-in {{ from {{ opacity: 0; transform: translateY(7px); }} to {{ opacity: 1; transform: translateY(0); }} }}
+        @media (prefers-reduced-motion: reduce) {{ *, *::before, *::after {{ animation-duration: .01ms !important; transition-duration: .01ms !important; }} }}
+        @media (max-width: 700px) {{ .cafe-brand-title {{ font-size: 1.5rem; }} .cafe-brand-subtitle {{ font-size: .8rem; }} .cafe-brand img {{ width: 36px; height: 26px; }} [data-testid="stAppViewContainer"]::before {{ width: 52vw; height: 38vw; top: 34vh; }} }}
     </style>
     """, unsafe_allow_html=True)
     with st.sidebar:
@@ -416,8 +464,12 @@ def render_app() -> None:
         if form_url:
             st.link_button("Faculty daily form", form_url, use_container_width=True)
 
-    st.title("SmartCafe AI")
-    st.caption("Weekday meal planning · live faculty Form and attendance data")
+    st.markdown(
+        f'<div class="cafe-brand"><img src="{LOGO_DATA_URI}" alt="SmartCafe logo">'
+        '<div><div class="cafe-brand-title">SmartCafe AI</div>'
+        '<div class="cafe-brand-subtitle">Weekday meal planning · live faculty Form and attendance data</div></div></div>',
+        unsafe_allow_html=True,
+    )
     st.info("Form responses are stored in Google Sheets. This dashboard polls the Sheets while open and retrains when real records change.")
     live_dashboard(target_date, holiday_choice)
 
